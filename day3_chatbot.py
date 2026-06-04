@@ -43,3 +43,43 @@ while True:
     conversation_history.append({"role": "assistant", "content": assistant_message})
 
     print(f"\nAnalyst: {assistant_message}\n")
+
+
+
+code day4_extractor.py
+import anthropic
+import json
+client= anthropic.Anthropic()
+
+sample_text = """Apple reported record quarterly revenue of $119.6 billion, up 8% year over year. 
+The company saw strong iPhone sales despite macroeconomic headwinds. 
+CEO Tim Cook expressed cautious optimism about the next quarter, 
+though supply chain risks remain a concern. Profit margins improved to 43%.
+"""
+
+response = client.message.create(
+    model= "claude-sonnet-4-6",
+    max_tokens= 1024,
+    system= """You are Financial Data Extraction Engine.
+    -Extract data from text and return ONLY a JSON objects with these exact fields:
+    -company : company name
+    -revenue : revenue figure as string
+    -revenue_growth : growth percentage as number
+    -profit margin :margin percentage as number
+    -sentiment : one of "positive", "neutral", "negative" based on the overall tone of the text
+    -risk level : one of "low", "medium", "high" 
+    -key risks : list of risk factors mentioned in the text
+    Return only the JSON No explanations, no markdown, no backticks.""",
+    messages=[
+        {"role": "user", "content": sample_text}
+    ]
+)
+
+raw= response.content[0].text
+data= json.loads(raw)
+
+print("Extracted Data:")
+print(json.dumps(data, indent=2))
+print(f"\n Company : {data['company']}")
+print(f" Sentiment: {data['sentiment']}")
+print(f" Risk Level: {data['risk level']}")
